@@ -1080,9 +1080,24 @@ macro_rules! create_levenshtein_simd_core {
                     let mut args = <$jewel>::triple_argmin(&sub, &a_gap_dp, &b_gap_dp, &mut dp0);
 
                     if allow_transpose {
-                        // blend using transpose mask
-                        dp0.blendv_mut(&transpose, &match_mask0);
-                        args.blendv_mut(&threes, &match_mask0);
+                        // find where transpose is cheaper, then blend using transpose mask
+                        let all_ones = <$jewel>::repeating_max(max_len);
+                        let mut min_dp = <$jewel>::repeating(0, max_len);
+                        min_dp.blendv_mut(&dp0, &all_ones);
+                        min_dp.min_mut(&transpose);
+
+                        let mut t_le_d_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::cmpeq(&min_dp, &transpose, &mut t_le_d_mask);
+                        let mut t_eq_d_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::cmpeq(&dp0, &transpose, &mut t_eq_d_mask);
+                        let mut temp_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::andnot(&t_eq_d_mask, &t_le_d_mask, &mut temp_mask);
+                        t_eq_d_mask = temp_mask;
+
+                        t_eq_d_mask.and_mut(&match_mask0);
+
+                        dp0.blendv_mut(&transpose, &t_eq_d_mask);
+                        args.blendv_mut(&threes, &t_eq_d_mask);
                         mem::swap(&mut match_mask0, &mut match_mask1);
                     }
 
@@ -1093,6 +1108,7 @@ macro_rules! create_levenshtein_simd_core {
 
                     if allow_transpose {
                         // blend using transpose mask
+                        transpose.min_mut(&dp0);
                         dp0.blendv_mut(&transpose, &match_mask0);
                         mem::swap(&mut match_mask0, &mut match_mask1);
                     }
@@ -1134,9 +1150,24 @@ macro_rules! create_levenshtein_simd_core {
                     let mut args = <$jewel>::triple_argmin(&sub, &a_gap_dp, &b_gap_dp, &mut dp0);
 
                     if allow_transpose {
-                        // blend using transpose mask
-                        dp0.blendv_mut(&transpose, &match_mask0);
-                        args.blendv_mut(&threes, &match_mask0);
+                        // find where transpose is cheaper, then blend using transpose mask
+                        let all_ones = <$jewel>::repeating_max(max_len);
+                        let mut min_dp = <$jewel>::repeating(0, max_len);
+                        min_dp.blendv_mut(&dp0, &all_ones);
+                        min_dp.min_mut(&transpose);
+
+                        let mut t_le_d_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::cmpeq(&min_dp, &transpose, &mut t_le_d_mask);
+                        let mut t_eq_d_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::cmpeq(&dp0, &transpose, &mut t_eq_d_mask);
+                        let mut temp_mask = <$jewel>::repeating(0, max_len);
+                        <$jewel>::andnot(&t_eq_d_mask, &t_le_d_mask, &mut temp_mask);
+                        t_eq_d_mask = temp_mask;
+
+                        t_eq_d_mask.and_mut(&match_mask0);
+
+                        dp0.blendv_mut(&transpose, &t_eq_d_mask);
+                        args.blendv_mut(&threes, &t_eq_d_mask);
                         mem::swap(&mut match_mask0, &mut match_mask1);
                     }
 
@@ -1147,6 +1178,7 @@ macro_rules! create_levenshtein_simd_core {
 
                     if allow_transpose {
                         // blend using transpose mask
+                        transpose.min_mut(&dp0);
                         dp0.blendv_mut(&transpose, &match_mask0);
                         mem::swap(&mut match_mask0, &mut match_mask1);
                     }
@@ -2376,9 +2408,14 @@ macro_rules! create_levenshtein_search_simd_core {
                     );
 
                     if allow_transpose {
-                        // blend using transpose mask
-                        dp0.blendv_mut(&transpose, &match_mask0);
-                        length0.blendv_mut(&transpose_length, &match_mask0);
+                        // blend using transpose mask if it is cheaper
+                        <$jewel>::min(&dp0, &transpose, &mut sub);
+                        let mut mask = <$jewel>::repeating(0, needle_len);
+                        <$jewel>::cmpeq(&sub, &transpose, &mut mask);
+                        mask.and_mut(&match_mask0);
+
+                        dp0.blendv_mut(&transpose, &mask);
+                        length0.blendv_mut(&transpose_length, &mask);
                         mem::swap(&mut match_mask0, &mut match_mask1);
                     }
 

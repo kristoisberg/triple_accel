@@ -390,6 +390,30 @@ fn test_basic_levenshtein_naive_k_with_opts() {
     let b14 = b"hello";
     let res1 = levenshtein_naive_k_with_opts(a14, b14, 1, false, RDAMERAU_COSTS);
     assert!(res1.is_none());
+
+    let a15 = b"AL NASSER";
+    let b15 = b"HALA NASSER";
+    res = levenshtein_naive_k_with_opts(a15, b15, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a16 = b"warsa";
+    let b16 = b"was";
+    res = levenshtein_naive_k_with_opts(a16, b16, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a17 = b"CUBAN";
+    let b17 = b"CABANA";
+    res = levenshtein_naive_k_with_opts(a17, b17, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a18 = b"CORNM";
+    let b18 = b"CORONA";
+    res = levenshtein_naive_k_with_opts(a18, b18, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
 }
 
 #[test]
@@ -424,6 +448,24 @@ fn test_trace_on_levenshtein_naive_k_with_opts() {
     assert!(res.1.unwrap() == vec![Edit{edit: EditType::Match, count: 1},
                                    Edit{edit: EditType::Transpose, count: 1},
                                    Edit{edit: EditType::Match, count: 2}]);
+
+    let a5 = b"AL NASSER";
+    let b5 = b"HALA NASSER";
+    res = levenshtein_naive_k_with_opts(a5, b5, 3, true, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.unwrap() == vec![Edit{edit: EditType::AGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 2},
+                                   Edit{edit: EditType::AGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 7}]);
+
+    let a6 = b"warsa";
+    let b6 = b"was";
+    res = levenshtein_naive_k_with_opts(a6, b6, 3, true, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.unwrap() == vec![Edit{edit: EditType::Match, count: 2},
+                                   Edit{edit: EditType::BGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 1},
+                                   Edit{edit: EditType::BGap, count: 1}]);
 }
 
 #[test]
@@ -540,6 +582,30 @@ fn test_basic_levenshtein_simd_k_with_opts() {
     let b19 = b"hello";
     let res1 = levenshtein_simd_k_with_opts(a19, b19, 1, false, RDAMERAU_COSTS);
     assert!(res1.is_none());
+
+    let a20 = b"AL NASSER";
+    let b20 = b"HALA NASSER";
+    res = levenshtein_simd_k_with_opts(a20, b20, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a21 = b"warsa";
+    let b21 = b"was";
+    res = levenshtein_simd_k_with_opts(a21, b21, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a22 = b"CUBAN";
+    let b22 = b"CABANA";
+    res = levenshtein_simd_k_with_opts(a22, b22, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
+
+    let a23 = b"CORNM";
+    let b23 = b"CORONA";
+    res = levenshtein_simd_k_with_opts(a23, b23, 3, false, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.is_none());
 }
 
 #[test]
@@ -574,6 +640,24 @@ fn test_trace_on_levenshtein_simd_k_with_opts() {
     assert!(res.1.unwrap() == vec![Edit{edit: EditType::Match, count: 1},
                                    Edit{edit: EditType::Transpose, count: 1},
                                    Edit{edit: EditType::Match, count: 2}]);
+
+    let a5 = b"AL NASSER";
+    let b5 = b"HALA NASSER";
+    res = levenshtein_simd_k_with_opts(a5, b5, 3, true, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.unwrap() == vec![Edit{edit: EditType::AGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 2},
+                                   Edit{edit: EditType::AGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 7}]);
+
+    let a6 = b"warsa";
+    let b6 = b"was";
+    res = levenshtein_simd_k_with_opts(a6, b6, 3, true, RDAMERAU_COSTS).unwrap();
+    assert!(res.0 == 2);
+    assert!(res.1.unwrap() == vec![Edit{edit: EditType::Match, count: 2},
+                                   Edit{edit: EditType::BGap, count: 1},
+                                   Edit{edit: EditType::Match, count: 1},
+                                   Edit{edit: EditType::BGap, count: 1}]);
 }
 
 #[test]
@@ -678,6 +762,21 @@ fn test_basic_levenshtein_search_naive() {
     let k17 = 2;
     res = levenshtein_search_naive_with_opts(a17, b17, k17, SearchType::All, LEVENSHTEIN_COSTS, true).collect();
     assert!(res == vec![Match{start: 0, end: 0, k: 0}, Match{start: 0, end: 1, k: 1}, Match{start: 0, end: 2, k: 2}]);
+
+    let a18 = b"AL NASSER";
+    let b18 = b"HALA NASSER";
+    res = levenshtein_search_naive_with_opts(a18, b18, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 2, end: 10, k: 2}, Match{start: 2, end: 11, k: 1}]);
+
+    let a19 = b"was";
+    let b19 = b"warsa";
+    res = levenshtein_search_naive_with_opts(a19, b19, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 0, end: 1, k: 2}, Match{start: 0, end: 2, k: 1}, Match{start: 0, end: 3, k: 1}, Match{start: 0, end: 4, k: 1}, Match{start: 2, end: 5, k: 2}]);
+
+    let a19 = b"CORONA";
+    let b19 = b"CORNMESSER";
+    res = levenshtein_search_naive_with_opts(a19, b19, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 0, end: 4, k: 2}, Match{start: 0, end: 5, k: 2}]);
 }
 
 #[test]
@@ -812,5 +911,20 @@ fn test_basic_levenshtein_search_simd() {
     let k22 = 2;
     res = levenshtein_search_simd_with_opts(a22, b22, k22, SearchType::All, LEVENSHTEIN_COSTS, true).collect();
     assert!(res == vec![Match{start: 0, end: 0, k: 0}, Match{start: 0, end: 1, k: 1}, Match{start: 0, end: 2, k: 2}]);
+
+    let a25 = b"CORONA";
+    let b25 = b"CORNMESSER";
+    res = levenshtein_search_simd_with_opts(a25, b25, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 0, end: 4, k: 2}, Match{start: 0, end: 5, k: 2}]);
+
+    let a23 = b"AL NASSER";
+    let b23 = b"HALA NASSER";
+    res = levenshtein_search_simd_with_opts(a23, b23, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 2, end: 10, k: 2}, Match{start: 2, end: 11, k: 1}]);
+
+    let a24 = b"was";
+    let b24 = b"warsa";
+    res = levenshtein_search_simd_with_opts(a24, b24, 2, SearchType::All, RDAMERAU_COSTS, false).collect();
+    assert!(res == vec![Match{start: 0, end: 1, k: 2}, Match{start: 0, end: 2, k: 1}, Match{start: 0, end: 3, k: 1}, Match{start: 0, end: 4, k: 1}, Match{start: 2, end: 5, k: 2}]);
 }
 
